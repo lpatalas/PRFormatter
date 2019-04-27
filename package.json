@@ -5,7 +5,8 @@
     "description": "BitBucket PR commit message formatter",
     "main": "prformatter.user.js",
     "scripts": {
-        "start": "tsc --watch"
+        "start": "tsc --watch",
+        "build": "tsc"
     },
     "author": "Łukasz Patalas",
     "license": "MIT",

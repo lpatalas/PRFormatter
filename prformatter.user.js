@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name         Bitbucket PR
-// @namespace    http://example.com/
+// @name         BitbucketPrFormatter
+// @namespace    http://lukaszpatalas.pl/
 // @version      1.0
-// @description  Test
-// @author       Lukasz
+// @description  Bitbucket PR commit message formatter
+// @author       Łukasz Patalas
 // @match        https://bitbucket.org/*/pull-requests/*
 // @grant        none
 // ==/UserScript==
@@ -14,9 +14,7 @@
         console.error('Cannot find button by id "fulfill-pullrequest"');
         return;
     }
-    mergeButton.addEventListener('click', function () {
-        setTimeout(onMergeDialogShown, 100);
-    });
+    mergeButton.addEventListener('click', onMergeDialogShown);
     function onMergeDialogShown() {
         const dialog = document.getElementById('bb-fulfill-pullrequest-dialog');
         if (!dialog) {
@@ -24,17 +22,12 @@
             return;
         }
         try {
-            modifyMergeDialog();
+            const prUrl = getPullRequestApiUrl();
+            apiGet(prUrl).then(fillCommitMessage);
         }
         catch (error) {
             console.log(error);
         }
-    }
-    function modifyMergeDialog() {
-        const apiToken = getApiToken();
-        console.debug('apiToken', apiToken);
-        const prUrl = 'https://api.bitbucket.org/2.0/repositories/lpatalas/merge-test/pullrequests/3';
-        apiGet(prUrl).then(fillCommitMessage);
     }
     function fillCommitMessage(pullRequest) {
         const commitMessageTextArea = document.getElementById('id_commit_message');
@@ -86,6 +79,18 @@
     }
     function concatLines(lines) {
         return lines.join('\r\n');
+    }
+    const pageUrlRegex = /\/(.+)\/pull-requests\/(\d+)/;
+    function getPullRequestApiUrl() {
+        const pageUrl = document.location.pathname;
+        const matches = pageUrlRegex.exec(pageUrl);
+        if (!matches) {
+            throw new Error(`Cannot match repo and PR id from pathname "${pageUrl}"`);
+        }
+        const apiBaseUrl = 'https://api.bitbucket.org/2.0';
+        const repoSlug = matches[1];
+        const prId = matches[2];
+        return `${apiBaseUrl}/repositories/${repoSlug}/pullrequests/${prId}`;
     }
     function apiGet(url) {
         const apiToken = getApiToken();
