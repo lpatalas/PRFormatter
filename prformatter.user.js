@@ -36,15 +36,12 @@
         console.debug('Parsed description:', parsedDescription);
         var approvedByTrailers = extractApprovedByTrailers(commitMessageTextArea.value);
         console.debug('approvedByTrailers', approvedByTrailers);
-        commitMessageTextArea.value = concatLines([
-            pullRequest.title,
-            '',
-            parsedDescription.text,
-            '',
-            ...parsedDescription.trailers,
-            `PR: ${pullRequest.id}`,
-            ...approvedByTrailers
-        ]);
+        const lines = [pullRequest.title];
+        if (parsedDescription.text) {
+            lines.push('', parsedDescription.text);
+        }
+        lines.push('', ...parsedDescription.trailers, `PR: ${pullRequest.id}`, ...approvedByTrailers);
+        commitMessageTextArea.value = concatLines(lines);
     }
     function adjustTextAreaStyles(textArea) {
         textArea.style.fontFamily = 'monospace';

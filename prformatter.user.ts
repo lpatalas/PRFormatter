@@ -50,15 +50,19 @@ interface PullRequest {
         var approvedByTrailers = extractApprovedByTrailers(commitMessageTextArea.value);
         console.debug('approvedByTrailers', approvedByTrailers);
 
-        commitMessageTextArea.value = concatLines([
-            pullRequest.title,
-            '',
-            parsedDescription.text,
+        const lines = [ pullRequest.title ];
+
+        if (parsedDescription.text) {
+            lines.push('', parsedDescription.text);
+        }
+
+        lines.push(
             '',
             ...parsedDescription.trailers,
             `PR: ${pullRequest.id}`,
-            ...approvedByTrailers
-        ]);
+            ...approvedByTrailers);
+
+        commitMessageTextArea.value = concatLines(lines);
     }
 
     function adjustTextAreaStyles(textArea: HTMLTextAreaElement) {
