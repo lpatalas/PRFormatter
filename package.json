@@ -1,0 +1,15 @@
+{
+    "name": "prformatter",
+    "version": "1.0.0",
+    "private": true,
+    "description": "BitBucket PR commit message formatter",
+    "main": "prformatter.user.js",
+    "scripts": {
+        "start": "tsc --watch"
+    },
+    "author": "Łukasz Patalas",
+    "license": "MIT",
+    "devDependencies": {
+        "typescript": "^3.4.5"
+    }
+}
