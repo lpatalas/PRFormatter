@@ -14,36 +14,36 @@
         console.error('Cannot find button by id "fulfill-pullrequest"');
         return;
     }
-    mergeButton.addEventListener('click', onMergeDialogShown);
+    mergeButton.addEventListener('click', () => {
+        waitForElement('bb-fulfill-pullrequest-dialog', onMergeDialogShown);
+    });
     function onMergeDialogShown() {
-        const dialog = document.getElementById('bb-fulfill-pullrequest-dialog');
-        if (!dialog) {
-            setTimeout(onMergeDialogShown, 100);
-            return;
-        }
         try {
             const prUrl = getPullRequestApiUrl();
-            apiGet(prUrl).then(fillCommitMessage);
+            apiGet(prUrl).then(pullRequest => {
+                waitForElement('id_commit_message', element => {
+                    fillCommitMessage(element, pullRequest);
+                });
+            });
         }
         catch (error) {
             console.log(error);
         }
     }
-    function fillCommitMessage(pullRequest) {
-        const commitMessageTextArea = document.getElementById('id_commit_message');
-        if (!commitMessageTextArea) {
-            throw new Error('Cannot find element "id_commit_message"');
-        }
+    function fillCommitMessage(commitMessageTextArea, pullRequest) {
         adjustTextAreaStyles(commitMessageTextArea);
         const parsedDescription = parseDescription(pullRequest.description);
         console.debug('Parsed description:', parsedDescription);
+        var approvedByTrailers = extractApprovedByTrailers(commitMessageTextArea.value);
+        console.debug('approvedByTrailers', approvedByTrailers);
         commitMessageTextArea.value = concatLines([
             pullRequest.title,
             '',
             parsedDescription.text,
             '',
             ...parsedDescription.trailers,
-            `PR: ${pullRequest.id}`
+            `PR: ${pullRequest.id}`,
+            ...approvedByTrailers
         ]);
     }
     function adjustTextAreaStyles(textArea) {
@@ -76,6 +76,10 @@
             text: concatLines(lines.slice(0, descriptionLineCount)),
             trailers: trailers
         };
+    }
+    const approvedByRegex = /^Approved-by: .+$/gm;
+    function extractApprovedByTrailers(text) {
+        return text.match(approvedByRegex) || [];
     }
     function concatLines(lines) {
         return lines.join('\r\n');
@@ -110,6 +114,10 @@
                 return Promise.reject(`API returned status: ${response.status} ${response.statusText}`);
             }
         })
+            .then(function (pullRequestData) {
+            console.debug('PullRequest:', pullRequestData);
+            return pullRequestData;
+        })
             .catch(function (error) {
             console.error(error);
         });
@@ -121,5 +129,23 @@
         }
         const tokenContent = JSON.parse(meta.content);
         return tokenContent.token;
+    }
+    const MAX_WAIT_ATTEMPTS = 10;
+    function waitForElement(elementId, callback, attempt) {
+        attempt = attempt || 0;
+        const element = document.getElementById(elementId);
+        if (element) {
+            callback(element);
+        }
+        else if (attempt && attempt >= MAX_WAIT_ATTEMPTS) {
+            throw new Error(`Maximum number of attempts reached when waiting for element "${elementId}"`);
+        }
+        else {
+            const nextAttempt = (attempt || 0) + 1;
+            console.debug(`Element "${elementId}" not found. Attempt ${nextAttempt}/${MAX_WAIT_ATTEMPTS}`);
+            setTimeout(() => {
+                waitForElement(elementId, callback, nextAttempt);
+            }, 100);
+        }
     }
 })();
