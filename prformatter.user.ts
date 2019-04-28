@@ -38,6 +38,7 @@ interface PullRequest {
         }
         catch (error) {
             console.log(error);
+            showToast(`PrFormatter error: ${error.message}`);
         }
     }
 
@@ -188,5 +189,42 @@ interface PullRequest {
                 waitForElement(elementId, callback, nextAttempt);
             }, 100);
         }
+    }
+
+    function showToast(message: string) {
+        const container = document.createElement('div');
+        container.style.background = 'red';
+        container.style.color = 'white';
+        container.style.fontWeight = 'bold';
+        container.style.height = '20pt';
+        container.style.left = '0';
+        container.style.position = 'fixed';
+        container.style.right = '0';
+        container.style.textAlign = 'center';
+        container.style.top = '0';
+        container.style.verticalAlign = 'center';
+        container.style.zIndex = '10000';
+
+        const text = document.createElement('span');
+        text.innerText = message;
+
+        const closeButton = document.createElement('a');
+        closeButton.style.color = 'white';
+        closeButton.style.cursor = 'pointer';
+        closeButton.style.height = '20pt';
+        closeButton.style.position = 'absolute';
+        closeButton.style.right = '0';
+        closeButton.style.top = '0';
+        closeButton.style.width = '20pt';
+        closeButton.innerHTML = 'X';
+        closeButton.addEventListener('click', e => {
+            document.body.removeChild(container);
+            e.preventDefault();
+            return true;
+        });
+
+        container.appendChild(text);
+        container.appendChild(closeButton);
+        document.body.appendChild(container);
     }
 })();
