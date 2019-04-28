@@ -11,7 +11,7 @@
     'use strict';
     const mergeButton = document.getElementById('fulfill-pullrequest');
     if (!mergeButton) {
-        console.error('Cannot find button by id "fulfill-pullrequest"');
+        reportError('Cannot find button by id "fulfill-pullrequest"');
         return;
     }
     mergeButton.addEventListener('click', () => {
@@ -24,11 +24,10 @@
                 waitForElement('id_commit_message', element => {
                     fillCommitMessage(element, pullRequest);
                 });
-            });
+            }).catch(reportError);
         }
         catch (error) {
-            console.log(error);
-            showToast(`PrFormatter error: ${error.message}`);
+            reportError(error);
         }
     }
     function fillCommitMessage(commitMessageTextArea, pullRequest) {
@@ -108,16 +107,18 @@
             if (response.status === 200) {
                 return response.json();
             }
+            else if (response.status === 401) {
+                return Promise.reject('BitBucket API token expired.'
+                    + ' You can fill message manually'
+                    + ' or hard-refresh page (Ctrl+F5) and try again.');
+            }
             else {
-                return Promise.reject(`API returned status: ${response.status} ${response.statusText}`);
+                return Promise.reject(`BitBucket API returned status: ${response.status} ${response.statusText}`);
             }
         })
             .then(function (pullRequestData) {
             console.debug('PullRequest:', pullRequestData);
             return pullRequestData;
-        })
-            .catch(function (error) {
-            console.error(error);
         });
     }
     function getApiToken() {
@@ -145,6 +146,11 @@
                 waitForElement(elementId, callback, nextAttempt);
             }, 100);
         }
+    }
+    function reportError(error) {
+        console.error(error);
+        const message = error instanceof Error ? error.message : error;
+        showToast(`PRFormatter error: ${message}`);
     }
     function showToast(message) {
         const container = document.createElement('div');
