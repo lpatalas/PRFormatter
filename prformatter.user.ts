@@ -70,6 +70,43 @@ interface PullRequest {
         textArea.style.fontFamily = 'monospace';
         textArea.style.minHeight = '400px';
         textArea.style.minWidth = '100%';
+
+        const textAreaStyle = window.getComputedStyle(textArea);
+
+        const glyphWidth = measureGlyphWidth(textAreaStyle);
+        const guidelineOffset = Math.floor(glyphWidth * 72);
+
+        const guidelineDiv = getOrCreateDiv('CommitMessageGuideline');
+        guidelineDiv.style.borderRight = 'dashed 1px red';
+        guidelineDiv.style.bottom = '0';
+        guidelineDiv.style.marginLeft = textAreaStyle.paddingLeft;
+        guidelineDiv.style.pointerEvents = 'none';
+        guidelineDiv.style.position = 'absolute';
+        guidelineDiv.style.top = '0';
+        guidelineDiv.style.width = `${guidelineOffset}px`;
+
+        const textAreaParent = textArea.parentElement;
+        if (textAreaParent) {
+            textAreaParent.appendChild(guidelineDiv);
+        }
+    }
+
+    function getOrCreateDiv(id: string) {
+        const div = document.getElementById(id) || document.createElement('div');
+        div.id = id;
+        return div;
+    }
+
+    function measureGlyphWidth(style: CSSStyleDeclaration) {
+        const font = `${style.fontSize} ${style.fontFamily}`;
+
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d')!;
+        context.font = font;
+        console.log(`Measuring text for font ${context.font} (desired: ${font})`);
+        const width = context.measureText(' ').width;
+        console.log(`Measured width: ${width}`);
+        return width;
     }
 
     const emptyLineRegex = /^\w*$/;
