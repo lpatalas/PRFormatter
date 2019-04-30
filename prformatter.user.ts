@@ -71,13 +71,18 @@ interface PullRequest {
         textArea.style.minHeight = '400px';
         textArea.style.minWidth = '100%';
 
+        addGuideline(textArea, 50, '#8886', 'CommitSubjectGuideline');
+        addGuideline(textArea, 72, '#f008', 'CommitBodyGuideline');
+    }
+
+    function addGuideline(textArea: HTMLElement, characterOffset: number, color: string, id: string) {
         const textAreaStyle = window.getComputedStyle(textArea);
 
         const glyphWidth = measureGlyphWidth(textAreaStyle);
-        const guidelineOffset = Math.floor(glyphWidth * 72);
+        const guidelineOffset = Math.floor(glyphWidth * characterOffset);
 
-        const guidelineDiv = getOrCreateDiv('CommitMessageGuideline');
-        guidelineDiv.style.borderRight = 'dashed 1px red';
+        const guidelineDiv = getOrCreateDiv(id);
+        guidelineDiv.style.borderRight = `dashed 1px ${color}`;
         guidelineDiv.style.bottom = '0';
         guidelineDiv.style.marginLeft = textAreaStyle.paddingLeft;
         guidelineDiv.style.pointerEvents = 'none';
