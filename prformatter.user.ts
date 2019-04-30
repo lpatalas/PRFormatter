@@ -27,12 +27,12 @@ interface PullRequest {
         waitForElement('bb-fulfill-pullrequest-dialog', onMergeDialogShown);
     })
 
-    function onMergeDialogShown() {
+    function onMergeDialogShown(dialog: HTMLElement) {
         try {
             const prUrl = getPullRequestApiUrl();
             apiGet(prUrl).then(pullRequest => {
-                waitForElement<HTMLTextAreaElement>('id_commit_message', element => {
-                    fillCommitMessage(element, pullRequest);
+                waitForElement<HTMLTextAreaElement>('id_commit_message', textArea => {
+                    fillCommitMessage(dialog, textArea, pullRequest);
                 });
             }).catch(reportError);
         }
@@ -41,8 +41,8 @@ interface PullRequest {
         }
     }
 
-    function fillCommitMessage(commitMessageTextArea: HTMLTextAreaElement, pullRequest: PullRequest) {
-        adjustTextAreaStyles(commitMessageTextArea);
+    function fillCommitMessage(dialog: HTMLElement, commitMessageTextArea: HTMLTextAreaElement, pullRequest: PullRequest) {
+        adjustTextAreaStyles(dialog, commitMessageTextArea);
 
         const parsedDescription = parseDescription(pullRequest.description);
         console.debug('Parsed description:', parsedDescription);
@@ -65,9 +65,11 @@ interface PullRequest {
         commitMessageTextArea.value = concatLines(lines);
     }
 
-    function adjustTextAreaStyles(textArea: HTMLTextAreaElement) {
+    function adjustTextAreaStyles(dialog: HTMLElement, textArea: HTMLTextAreaElement) {
+        dialog.style.width = '1000px';
         textArea.style.fontFamily = 'monospace';
         textArea.style.minHeight = '400px';
+        textArea.style.minWidth = '100%';
     }
 
     const emptyLineRegex = /^\w*$/;

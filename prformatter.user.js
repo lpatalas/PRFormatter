@@ -17,12 +17,12 @@
     mergeButton.addEventListener('click', () => {
         waitForElement('bb-fulfill-pullrequest-dialog', onMergeDialogShown);
     });
-    function onMergeDialogShown() {
+    function onMergeDialogShown(dialog) {
         try {
             const prUrl = getPullRequestApiUrl();
             apiGet(prUrl).then(pullRequest => {
-                waitForElement('id_commit_message', element => {
-                    fillCommitMessage(element, pullRequest);
+                waitForElement('id_commit_message', textArea => {
+                    fillCommitMessage(dialog, textArea, pullRequest);
                 });
             }).catch(reportError);
         }
@@ -30,8 +30,8 @@
             reportError(error);
         }
     }
-    function fillCommitMessage(commitMessageTextArea, pullRequest) {
-        adjustTextAreaStyles(commitMessageTextArea);
+    function fillCommitMessage(dialog, commitMessageTextArea, pullRequest) {
+        adjustTextAreaStyles(dialog, commitMessageTextArea);
         const parsedDescription = parseDescription(pullRequest.description);
         console.debug('Parsed description:', parsedDescription);
         var approvedByTrailers = extractApprovedByTrailers(commitMessageTextArea.value);
@@ -43,9 +43,11 @@
         lines.push('', ...parsedDescription.trailers, `PR: ${pullRequest.id}`, ...approvedByTrailers);
         commitMessageTextArea.value = concatLines(lines);
     }
-    function adjustTextAreaStyles(textArea) {
+    function adjustTextAreaStyles(dialog, textArea) {
+        dialog.style.width = '1000px';
         textArea.style.fontFamily = 'monospace';
         textArea.style.minHeight = '400px';
+        textArea.style.minWidth = '100%';
     }
     const emptyLineRegex = /^\w*$/;
     const trailerRegex = /^[A-Z_-]+: .+$/i;
