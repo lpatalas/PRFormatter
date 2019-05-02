@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BitbucketPrFormatter
 // @namespace    http://lukaszpatalas.pl/
-// @version      1.0
+// @version      1.1
 // @description  Bitbucket PR commit message formatter
 // @author       Łukasz Patalas
 // @match        https://bitbucket.org/*/pull-requests/*
@@ -9,6 +9,12 @@
 // ==/UserScript==
 (function () {
     'use strict';
+    const pathRegex = /\/pull-requests\/\d+(\/.+)?$/;
+    if (!pathRegex.test(window.location.pathname)) {
+        console.log('PRFormatter will not be enabled because URL does not match pattern');
+        return;
+    }
+    console.log("Enablng PRFormatter");
     const mergeButton = document.getElementById('fulfill-pullrequest');
     if (!mergeButton) {
         reportError('Cannot find button by id "fulfill-pullrequest"');
