@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BitbucketPrFormatter
 // @namespace    http://lukaszpatalas.pl/
-// @version      1.1
+// @version      1.2
 // @description  Bitbucket PR commit message formatter
 // @author       Łukasz Patalas
 // @match        https://bitbucket.org/*/pull-requests/*
@@ -23,13 +23,13 @@ interface PullRequest {
         return;
     }
 
-    console.log("Enablng PRFormatter");
-
     const mergeButton = document.getElementById('fulfill-pullrequest');
     if (!mergeButton) {
-        reportError('Cannot find button by id "fulfill-pullrequest"');
+        console.log('PRFormatter will not be enabled because button with id "fulfill-pullrequest" does not exist');
         return;
     }
+
+    console.log("Enablng PRFormatter");
 
     mergeButton.addEventListener('click', () => {
         waitForElement('bb-fulfill-pullrequest-dialog', onMergeDialogShown);
