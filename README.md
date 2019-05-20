@@ -2,17 +2,12 @@
 
 ## Features
 
-* Changes formatting of pull request commit message to:
-    ```
-    <PR title>
-
-    <PR description>
-
-    <Trailers>
-    ```
+* Automatically formats pull request commit message by:
+    * Using pull request title as commit subject
+    * Using pull request description as commit body
+    * Appending `PR: <id>` to message trailers
 * Makes commit message input bigger
 * Adds vertical guidelines at 50 and 72 characters to help keep proper line breaks
-* Appends `PR: <id>` to message trailers
 
 ## Installation
 
