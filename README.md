@@ -14,8 +14,9 @@
 1. Install Tampermonkey or any other user script manager:
     * [Tampermonkey for Chrome](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo)
     * [Tampermonkey for Firefox](https://addons.mozilla.org/pl/firefox/addon/tampermonkey)
-2. Open user script file in browser: https://github.com/lpatalas/PRFormatter/raw/master/prformatter.user.js
-3. Extension should automatically ask to install the script
+2. Open user script file in browser: [prformatter.user.js](prformatter.user.js).
+3. Click "Open Raw" menu option (upper right of file).
+4. Extension should automatically ask to install the script
 
 ## Example
 
