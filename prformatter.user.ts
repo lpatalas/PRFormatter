@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BitbucketPrFormatter
 // @namespace    http://lukaszpatalas.pl/
-// @version      1.2
+// @version      1.3
 // @description  Bitbucket PR commit message formatter
 // @author       Łukasz Patalas
 // @match        https://bitbucket.org/*/pull-requests/*
@@ -23,25 +23,98 @@ interface PullRequest {
         return;
     }
 
-    const mergeButton = document.getElementById('fulfill-pullrequest');
-    if (!mergeButton) {
-        console.log('PRFormatter will not be enabled because button with id "fulfill-pullrequest" does not exist');
-        return;
+    waitForElement(findMergeButton, mergeButton => {
+        mergeButton.addEventListener('click', () => {
+            waitForElement(findPullRequestDialog, onMergeDialogShown);
+        });
+    });
+
+    function findMergeButton() {
+        const oldVersionButton = document.getElementById('fulfill-pullrequest');
+        if (oldVersionButton) {
+            return oldVersionButton;
+        }
+
+        const buttons = document.querySelectorAll('button');
+        for (let button of buttons) {
+            if (button.innerText.toLowerCase().trim() === 'merge') {
+                return button;
+            }
+        }
+
+        return null;
     }
 
-    console.log("Enablng PRFormatter");
+    function findPullRequestDialog() {
+        const oldDialog = document.getElementById('bb-fulfill-pullrequest-dialog');
+        if (oldDialog) {
+            return oldDialog;
+        }
 
-    mergeButton.addEventListener('click', () => {
-        waitForElement('bb-fulfill-pullrequest-dialog', onMergeDialogShown);
-    })
+        const mergeDialogHeaders = document.querySelectorAll('div[role="dialog"] h4') as NodeListOf<HTMLElement>;
+        for (let header of mergeDialogHeaders) {
+            if (header.innerText.toLowerCase().trim() === 'merge pull request') {
+                return findParentDialog(header);
+            }
+        }
+
+        return null;
+    }
+
+    function findParentDialog(dialogElement: HTMLElement) {
+        let parent = dialogElement.parentElement;
+        while (parent) {
+            if (parent.getAttribute('role') === 'dialog') {
+                return parent;
+            }
+
+            parent = parent.parentElement;
+        }
+
+        return null;
+    }
+
+    function findCommitMessageTextArea(dialog: HTMLElement) {
+        return function() {
+            const oldTextArea = document.getElementById('id_commit_message') as HTMLTextAreaElement;
+            if (oldTextArea) {
+                return oldTextArea;
+            }
+
+            const textAreas = document.querySelectorAll('textarea');
+            for (let textArea of textAreas) {
+                if (isChildOf(textArea, dialog)) {
+                    return textArea;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    function isChildOf(element: HTMLElement, parentElement: HTMLElement) {
+        let currentElement = element.parentElement;
+
+        while (currentElement) {
+            if (currentElement === parentElement) {
+                return true;
+            }
+
+            currentElement = currentElement.parentElement;
+        }
+
+        return null;
+    }
 
     function onMergeDialogShown(dialog: HTMLElement) {
         try {
             const prUrl = getPullRequestApiUrl();
             apiGet(prUrl).then(pullRequest => {
-                waitForElement<HTMLTextAreaElement>('id_commit_message', textArea => {
-                    fillCommitMessage(dialog, textArea, pullRequest);
-                });
+                waitForElement<HTMLTextAreaElement>(
+                    findCommitMessageTextArea(dialog),
+                    textArea => {
+                        fillCommitMessage(dialog, textArea, pullRequest);
+                    });
             }).catch(reportError);
         }
         catch (error) {
@@ -224,23 +297,26 @@ interface PullRequest {
 
     const MAX_WAIT_ATTEMPTS = 10;
 
-    function waitForElement<T extends HTMLElement>(elementId: string, callback: (element: T) => void, attempt?: number) {
+    function waitForElement<T extends HTMLElement>(
+        elementFinder: () => T | null,
+        callback: (element: T) => void, attempt?: number
+    ) {
         attempt = attempt || 0;
 
-        const element = document.getElementById(elementId) as T;
+        const element = elementFinder();
         if (element) {
             callback(element);
         }
         else if (attempt && attempt >= MAX_WAIT_ATTEMPTS) {
-            throw new Error(`Maximum number of attempts reached when waiting for element "${elementId}"`);
+            throw new Error(`Maximum number of attempts reached when searching for element using "${elementFinder.name}"`);
         }
         else {
             const nextAttempt = (attempt || 0) + 1;
 
-            console.debug(`Element "${elementId}" not found. Attempt ${nextAttempt}/${MAX_WAIT_ATTEMPTS}`);
+            console.debug(`Function "${elementFinder.name}" did not find the element. Attempt ${nextAttempt}/${MAX_WAIT_ATTEMPTS}`);
 
             setTimeout(() => {
-                waitForElement(elementId, callback, nextAttempt);
+                waitForElement(elementFinder, callback, nextAttempt);
             }, 100);
         }
     }
